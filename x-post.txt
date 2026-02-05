@@ -1,0 +1,34 @@
+Tired of waking up to a broken OpenClaw instance?
+
+You configure Telegram, Gateway crashes. You fix the config, another provider hits rate limits. You debug for hours, only to find it was a simple auth error.
+
+Sound familiar?
+
+I built OpenClaw Guardian — a 3-layer self-healing system that:
+
+✅ Auto-recovers from config corruption (rolling backups)
+✅ Detects provider cooldowns & failover chains 
+✅ Restarts Gateway automatically when it hangs
+✅ Sends you audit reports every 2 hours
+
+Day: Health probes every 15 min
+Night: Every hour (save tokens)
+
+No more 3am debugging sessions. Your OpenClaw fixes itself.
+
+🔗 github.com/anchor-jevons/openclaw-guardian
+
+#OpenClaw #AI #DevOps #SelfHealing
+
+---
+
+Built this after one too many "why isn't my bot responding" mornings. 
+
+The pain was real:
+- JSON typo → Gateway down → manual SSH 
+- Moonshot rate limit → fallback to Gemini → no visibility
+- Telegram token expired → silent failures
+
+Guardian watches. Guardian heals. You sleep.
+
+Give it a spin. Feedback welcome — it's beta but battle-tested on my own setup.

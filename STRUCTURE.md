@@ -3,9 +3,8 @@
 ```
 openclaw-guardian/
 ├── README.md                          # Main documentation
-├── SKILL.md                           # OpenClaw skill documentation
 ├── install.sh                         # One-click installer
-├── LICENSE                            # MIT License (to be added)
+├── LICENSE                            # Apache-2.0 License
 ├── config/
 │   └── guardian.yaml                  # Default configuration template
 ├── layer1-watchdog/                   # Self-Healing Layer
@@ -14,6 +13,9 @@ openclaw-guardian/
 │   └── com.openclaw.guardian.night.plist  # Night schedule (1hr)
 ├── layer2-audit/                      # System Audit Layer
 │   └── health_fetcher.py              # Health data collector
+├── skill/                             # System Watchdog Skill (NEW)
+│   ├── SKILL.md                       # Skill documentation
+│   └── run.sh                         # LLM report generator
 ├── layer3-security/                   # Security Layer (Optional)
 │   └── README.md                      # Tinman integration guide
 └── scripts/                           # Utility scripts (future)

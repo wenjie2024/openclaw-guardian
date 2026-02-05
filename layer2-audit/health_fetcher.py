@@ -7,7 +7,7 @@ import json
 import os
 import re
 import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 
 HOME = os.path.expanduser("~")
@@ -42,7 +42,7 @@ def read_log_file_tail(log_path, max_bytes=512*1024, hours=2):
     if not os.path.exists(log_path):
         return []
     
-    since_time = datetime.now() - timedelta(hours=hours)
+    since_time = datetime.now(timezone.utc).astimezone() - timedelta(hours=hours)
     relevant_lines = []
     
     try:
@@ -57,7 +57,9 @@ def read_log_file_tail(log_path, max_bytes=512*1024, hours=2):
                 match = re.match(r'^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})', line)
                 if match:
                     try:
-                        log_time = datetime.fromisoformat(match.group(1))
+                        # Parse UTC timestamp and convert to local time
+                        log_time_str = match.group(1)
+                        log_time = datetime.fromisoformat(log_time_str).replace(tzinfo=timezone.utc).astimezone()
                         if log_time > since_time:
                             relevant_lines.append(line)
                     except ValueError:
@@ -252,18 +254,59 @@ def summarize_watchdog_events(events):
 
 
 def get_cron_status():
+    """Get cron jobs status by reading cron jobs.json directly (avoids CLI hang)."""
     try:
-        result = subprocess.run([OPENCLAW_BIN, "cron", "list"], 
-                              capture_output=True, text=True, timeout=15)
-        if result.returncode == 0:
-            return json.loads(result.stdout)
+        # Read cron jobs from dedicated cron directory
+        cron_jobs_path = os.path.expanduser("~/.openclaw/cron/jobs.json")
+        if not os.path.exists(cron_jobs_path):
+            return {"error": "Cron jobs file not found", "jobs": []}
+        
+        with open(cron_jobs_path, 'r', encoding='utf-8') as f:
+            cron_data = json.load(f)
+        
+        jobs = cron_data.get("jobs", [])
+        
+        # Format job info
+        formatted_jobs = []
+        for job in jobs:
+            schedule = job.get("schedule", {})
+            payload = job.get("payload", {})
+            state = job.get("state", {})
+            
+            # Format schedule display
+            sched_kind = schedule.get("kind", "unknown")
+            if sched_kind == "cron":
+                sched_display = f"cron {schedule.get('expr', '')}"
+                if schedule.get("tz"):
+                    sched_display += f" @ {schedule['tz']}"
+            elif sched_kind == "every":
+                every_ms = schedule.get("everyMs", 0)
+                sched_display = f"every {every_ms // 60000}m" if every_ms else "unknown"
+            elif sched_kind == "at":
+                at_ms = schedule.get("atMs", 0)
+                sched_display = f"at {at_ms}" if at_ms else "unknown"
+            else:
+                sched_display = sched_kind
+            
+            formatted_jobs.append({
+                "id": job.get("id", "unknown"),
+                "name": job.get("name", "unnamed"),
+                "schedule": sched_display,
+                "enabled": job.get("enabled", True),
+                "sessionTarget": job.get("sessionTarget", "main"),
+                "payloadKind": payload.get("kind", "unknown"),
+                "lastRunAtMs": state.get("lastRunAtMs"),
+                "lastStatus": state.get("lastStatus")
+            })
+        
+        return {"jobs": formatted_jobs}
     except Exception as e:
-        return {"error": str(e)}
-    return {}
+        import traceback
+        return {"error": str(e), "traceback": traceback.format_exc(), "jobs": []}
 
 
 def main():
-    hours = 2
+    hours = 4
     
     # Read both log files
     gateway_lines = read_log_file_tail(
@@ -288,13 +331,20 @@ def main():
     cron_summary = []
     if "jobs" in cron_data:
         for job in cron_data["jobs"]:
-            state = job.get("state", {})
+            # Format last run time
+            last_run_ms = job.get("lastRunAtMs")
+            last_run_str = None
+            if last_run_ms:
+                last_run_dt = datetime.fromtimestamp(last_run_ms / 1000)
+                last_run_str = last_run_dt.strftime("%m-%d %H:%M")
+            
             cron_summary.append({
                 "name": job.get("name"),
-                "lastStatus": state.get("lastStatus"),
-                "lastRun": state.get("lastRunAtMs"),
-                "lastDuration": state.get("lastDurationMs"),
-                "nextRun": state.get("nextRunAtMs")
+                "schedule": job.get("schedule"),
+                "enabled": job.get("enabled"),
+                "lastStatus": job.get("lastStatus"),
+                "lastRun": last_run_str,
+                "payloadKind": job.get("payloadKind")
             })
     
     # Build comprehensive output

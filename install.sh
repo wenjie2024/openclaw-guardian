@@ -119,8 +119,38 @@ install_audit() {
     cp "$SCRIPT_DIR/layer2-audit/health_fetcher.py" "$SCRIPTS_DIR/"
     chmod +x "$SCRIPTS_DIR/health_fetcher.py"
     print_success "Installed health_fetcher.py"
+}
+
+install_skill() {
+    echo ""
+    echo "🧠 Installing System Watchdog Skill..."
     
-    print_warning "Remember to update your cron job to use: $SCRIPTS_DIR/health_fetcher.py"
+    SKILL_TARGET="${HOME}/.openclaw/skills/system-watchdog"
+    
+    # Get script directory
+    SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+    while [ -L "$SCRIPT_SOURCE" ]; do
+        SCRIPT_DIR=$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)
+        SCRIPT_SOURCE=$(readlink "$SCRIPT_SOURCE")
+        [[ $SCRIPT_SOURCE != /* ]] && SCRIPT_SOURCE="$SCRIPT_DIR/$SCRIPT_SOURCE"
+    done
+    SCRIPT_DIR=$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)
+    
+    # Create skills directory if not exists
+    mkdir -p "${HOME}/.openclaw/skills"
+    
+    # Remove old skill if exists
+    if [ -d "$SKILL_TARGET" ]; then
+        rm -rf "$SKILL_TARGET"
+    fi
+    
+    # Copy skill
+    mkdir -p "$SKILL_TARGET"
+    cp "$SCRIPT_DIR/skill/SKILL.md" "$SKILL_TARGET/"
+    cp "$SCRIPT_DIR/skill/run.sh" "$SKILL_TARGET/"
+    chmod +x "$SKILL_TARGET/run.sh"
+    
+    print_success "Installed system-watchdog skill to $SKILL_TARGET"
 }
 
 install_config() {
@@ -232,6 +262,7 @@ main() {
     setup_directories
     install_watchdog
     install_audit
+    install_skill
     install_config
     verify_installation
     print_summary

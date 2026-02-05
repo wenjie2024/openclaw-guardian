@@ -1,0 +1,20 @@
+OpenClaw Guardian - Reply Templates
+====================================
+
+TEMPLATE 1 - Nader Dabit (Mission Control):
+Love this setup! 🚀 For anyone running 10+ agents — consider adding OpenClaw Guardian for self-healing. Auto-recovers when Gateway crashes, detects provider cooldowns. Keeps your Mission Control running 24/7. 🔗 github.com/anchor-jevons/openclaw-guardian
+
+TEMPLATE 2 - Sumanth (Token optimization):
+Great comparison! Guardian optimizes token usage with smart day/night scheduling. Layer 1 handles health probes, Layer 2 generates audit reports. Sleep better while your agents work. 🔗 github.com/anchor-jevons/openclaw-guardian
+
+TEMPLATE 3 - Thomas Roccia (Security):
+Love MoltThreats! 🔥 Guardian complements this perfectly — production-grade monitoring with auto-recovery. Layer 3 integrates Tinman for security scans. Defense in depth for AI agents. 🔗 github.com/anchor-jevons/openclaw-guardian
+
+TEMPLATE 4 - SANS ISC (Monitoring):
+Exactly! Guardian provides production-ready monitoring for OpenClaw. Self-healing watchdog + system audit + optional security integration. Deploy and sleep soundly. 🔗 github.com/anchor-jevons/openclaw-guardian
+
+TEMPLATE 5 - Solana (Ecosystem):
+Running agents on Base? Guardian keeps them healthy 24/7. Auto-recovery from config corruption, provider cooldown detection, smart scheduling to optimize costs. 🔗 github.com/anchor-jevons/openclaw-guardian
+
+SHORT VERSION (if limited space):
+Check out OpenClaw Guardian — 3-layer self-healing for OpenClaw. Auto-recovery, provider monitoring, cost-optimized scheduling. 🔗 github.com/anchor-jevons/openclaw-guardian

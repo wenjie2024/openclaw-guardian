@@ -1,0 +1,18 @@
+3am again. 😩
+
+Configure Telegram → Gateway crashes 🔄
+Fix config → Provider rate limit ⚡  
+Debug for hours → It was just auth 🔑
+
+Sound familiar?
+
+OpenClaw Guardian watches your setup 24/7:
+🛡️ Auto-heals config corruption
+📊 Detects provider cooldowns  
+🔄 Restarts Gateway when stuck
+
+Sleep better. Let it fix itself.
+
+🔗 github.com/anchor-jevons/openclaw-guardian
+
+#OpenClaw #AI #DevOps #SelfHealing
