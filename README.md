@@ -1,12 +1,17 @@
 # OpenClaw Guardian
 
+[English](#english) | [中文](#中文)
+
+---
+
+<a name="english"></a>
+## 🇬🇧 English
+
 Production-ready self-healing and monitoring for OpenClaw deployments.
 
-## What It Does
+### What It Does
 
 OpenClaw Guardian provides a three-layer defense system that keeps your OpenClaw instance healthy, secure, and automatically recovering from failures without manual intervention.
-
-### Three-Layer Architecture
 
 ```
 ┌─────────────────────────────────────────┐
@@ -29,11 +34,9 @@ OpenClaw Guardian provides a three-layer defense system that keeps your OpenClaw
 └─────────────────────────────────────────┘
 ```
 
-## Installation
+### Installation
 
-### Automated Installation (Recommended)
-
-Run this command in your terminal:
+#### Automated Installation (Recommended)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/openclaw-guardian/main/install.sh | bash
@@ -47,230 +50,206 @@ cd openclaw-guardian
 ./install.sh
 ```
 
-The installer will:
-- Create necessary directories
-- Install watchdog scripts
-- Configure macOS LaunchAgents (for automatic scheduling)
-- Set up rolling config backups
-- Verify the installation
+#### Scheduling Configuration
 
-### Manual Configuration
-
-After installation, edit your configuration:
-
-```bash
-# Copy the example configuration
-cp ~/.openclaw/guardian.yaml.example ~/.openclaw/guardian.yaml
-
-# Edit to your needs
-nano ~/.openclaw/guardian.yaml
-```
-
-### Scheduling Configuration
-
-**Layer 1 (Watchdog)** is automatically scheduled via macOS LaunchAgents:
-- **Day** (08:00-23:00): Every 15 minutes
-- **Night** (00:00-07:00): Every 60 minutes
+**Layer 1 (Watchdog)** is automatically scheduled via macOS LaunchAgents.
 
 **Layer 2 (System Audit)** requires you to configure a cron job:
 
 ```bash
-# Edit your crontab
+# Every 2 hours during daytime
 crontab -e
-
-# Add a line like this (adjust frequency to your needs):
-# Every 2 hours during daytime (08:00-22:00)
 0 8-22/2 * * * /usr/bin/python3 $HOME/.openclaw/scripts/openclaw-guardian/health_fetcher.py | openclaw message send --target "#your-channel"
-
-# Or every 4 hours (less frequent, lower token usage):
-0 */4 * * * /usr/bin/python3 $HOME/.openclaw/scripts/openclaw-guardian/health_fetcher.py | openclaw message send --target "#your-channel"
-
-# Or once per day:
-0 9 * * * /usr/bin/python3 $HOME/.openclaw/scripts/openclaw-guardian/health_fetcher.py | openclaw message send --target "#your-channel"
 ```
 
-> ⚠️ **Token Usage Notice**: More frequent health checks and reports will consume more LLM tokens. Adjust the schedule based on your stability needs and token budget. Layer 1 (Watchdog) runs independently and will continue to protect your system even if Layer 2 reports are infrequent.
+> ⚠️ **Token Usage Notice**: More frequent health checks and reports will consume more LLM tokens. Adjust the schedule based on your stability needs and token budget.
 
-## Features
+### Features
 
-### Layer 1: Self-Healing Watchdog
+**Layer 1: Self-Healing Watchdog**
+- Health probes via external sessions spawn
+- Automatic config restoration from rolling backups
+- Error classification (CONFIG_ERROR, TIMEOUT, CONNECTION, AUTH_ERROR)
+- Smart day/night scheduling
 
-- **Health Probes**: External sessions spawn to detect Gateway failures
-- **Auto-Recovery**: Automatic config restoration from rolling backups (current/v1/v2/v3)
-- **Error Classification**: Detects CONFIG_ERROR, TIMEOUT, CONNECTION, AUTH_ERROR
-- **Smart Scheduling**: Optimized day/night frequencies to balance responsiveness and cost
-- **Notifications**: Alerts via Discord or macOS notification center
+**Layer 2: System Audit**
+- Dual log analysis (gateway.log + gateway.err.log)
+- LLM health tracking (cooldown, auth failures, rate limits)
+- Failover detection
+- Cron job monitoring
 
-### Layer 2: System Audit
-
-- **Dual Log Analysis**: Reads both `gateway.log` and `gateway.err.log`
-- **LLM Health Tracking**: Monitors provider cooldown, auth failures, rate limits, timeouts
-- **Failover Detection**: Tracks model switching paths
-- **Cron Job Monitoring**: Reports task success/failure with execution times
-- **Self-Healing Events**: Reports Watchdog recovery actions
-
-### Layer 3: Security (Optional)
-
-Integrates with [Tinman](https://github.com/oliveskin/openclaw-skill-tinman) for:
-- Daily security scans
+**Layer 3: Security (Optional)**
+- Integrates with Tinman for security scans
 - Prompt injection detection
 - Tool misuse monitoring
-- Context bleed detection
 
-To enable:
-```bash
-openclaw skill install tinman
-# Then set tinman_enabled: true in ~/.openclaw/guardian.yaml
-```
+### Configuration
 
-## Configuration
-
-Default configuration (`~/.openclaw/guardian.yaml`):
+Edit `~/.openclaw/guardian.yaml`:
 
 ```yaml
 watchdog:
-  day_interval_minutes: 15      # 08:00-23:00
-  night_interval_minutes: 60    # 00:00-07:00
+  day_interval_minutes: 15
+  night_interval_minutes: 60
   max_consecutive_restarts: 3
-  log_rotation_mb: 10
-  backup_count: 4
 
 audit:
-  report_interval_hours: 2      # Configure via your own cron job
-  log_read_size_kb: 512
-  history_window_hours: 2
+  report_interval_hours: 2
 
 security:
   tinman_enabled: false
-  daily_scan_time: "09:15"
-
-notification:
-  discord_channel: "#alerts"
-  fallback: "macos_notification"
 ```
 
-## Monitoring
+### License
 
-### Check Watchdog Status
+Apache-2.0
 
-```bash
-# View recent logs
-tail -f ~/.openclaw/guardian/watchdog.log
+---
 
-# Check if LaunchAgents are loaded
-launchctl list | grep com.openclaw.guardian
+<a name="中文"></a>
+## 🇨🇳 中文
 
-# Manual health check
-python3 ~/.openclaw/scripts/openclaw-guardian/health_fetcher.py
+OpenClaw 生产级自愈与监控系统。
+
+### 功能概述
+
+OpenClaw Guardian 提供三层防护体系，确保您的 OpenClaw 实例保持健康、安全，并在故障时自动恢复，无需人工干预。
+
+```
+┌─────────────────────────────────────────┐
+│  第三层：安全审计（可选）                │
+│  每日扫描提示词注入、工具滥用、          │
+│  上下文泄露等安全问题                    │
+│  （需要安装 tinman skill）              │
+└─────────────────────────────────────────┘
+            ↓
+┌─────────────────────────────────────────┐
+│  第二层：系统审计                        │
+│  每 N 小时：Gateway 健康状态、           │
+│  LLM 路由诊断、定时任务监控              │
+└─────────────────────────────────────────┘
+            ↓
+┌─────────────────────────────────────────┐
+│  第一层：自愈探活                        │
+│  健康探测、自动恢复、                    │
+│  滚动配置备份                            │
+└─────────────────────────────────────────┘
 ```
 
-### View Audit Events
+### 安装
+
+#### 自动安装（推荐）
 
 ```bash
-# Recent self-healing events
-cat ~/.openclaw/guardian/audit.jsonl | tail -10
+curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/openclaw-guardian/main/install.sh | bash
 ```
 
-## Troubleshooting
-
-### Watchdog not running
+或手动安装：
 
 ```bash
-# Reload LaunchAgents
+git clone https://github.com/YOUR_USERNAME/openclaw-guardian.git
+cd openclaw-guardian
+./install.sh
+```
+
+#### 定时配置
+
+**第一层（Watchdog）** 通过 macOS LaunchAgent 自动调度，无需额外配置。
+
+**第二层（系统审计）** 需要您自行配置定时任务：
+
+```bash
+# 编辑 crontab
+crontab -e
+
+# 白天每2小时执行一次
+0 8-22/2 * * * /usr/bin/python3 $HOME/.openclaw/scripts/openclaw-guardian/health_fetcher.py | openclaw message send --target "#your-channel"
+
+# 或每4小时一次（频率更低，Token 消耗更少）
+0 */4 * * * /usr/bin/python3 $HOME/.openclaw/scripts/openclaw-guardian/health_fetcher.py | openclaw message send --target "#your-channel"
+
+# 或每天一次
+0 9 * * * /usr/bin/python3 $HOME/.openclaw/scripts/openclaw-guardian/health_fetcher.py | openclaw message send --target "#your-channel"
+```
+
+> ⚠️ **Token 消耗提示**：更频繁的健康检查和报告会消耗更多 LLM Token。请根据您的稳定性需求和 Token 预算调整定时频率。第一层（Watchdog）独立运行，即使第二层报告频率较低也能持续保护系统。
+
+### 功能特性
+
+**第一层：自愈探活**
+- 通过外部会话生成进行健康探测
+- 从滚动备份自动恢复配置（current/v1/v2/v3）
+- 错误分类（配置错误、超时、连接失败、认证失败）
+- 智能昼夜调度策略
+
+**第二层：系统审计**
+- 双日志分析（gateway.log + gateway.err.log）
+- LLM 健康追踪（Provider 冷却、认证失败、限流）
+- Failover 链路检测
+- 定时任务监控
+
+**第三层：安全审计（可选）**
+- 集成 Tinman 进行安全扫描
+- 提示词注入检测
+- 工具滥用监控
+
+### 配置说明
+
+编辑 `~/.openclaw/guardian.yaml`：
+
+```yaml
+watchdog:
+  day_interval_minutes: 15      # 白天（08:00-23:00）每15分钟
+  night_interval_minutes: 60    # 夜间（00:00-07:00）每60分钟
+  max_consecutive_restarts: 3   # 最大连续重启次数
+  log_rotation_mb: 10           # 日志轮转大小
+
+audit:
+  report_interval_hours: 2      # 通过 cron 配置实际执行频率
+
+security:
+  tinman_enabled: false         # 是否启用 Tinman 安全扫描
+```
+
+### 故障排查
+
+**Watchdog 未运行**
+```bash
+# 重新加载 LaunchAgent
 launchctl unload ~/Library/LaunchAgents/com.openclaw.guardian.day.plist
 launchctl load ~/Library/LaunchAgents/com.openclaw.guardian.day.plist
 ```
 
-### Config recovery failed
-
+**配置恢复失败**
 ```bash
-# List available backups
+# 查看可用备份
 ls -la ~/.openclaw/config-backups/
 
-# Manual restore
+# 手动恢复
 cp ~/.openclaw/config-backups/openclaw.json.current ~/.openclaw/openclaw.json
 openclaw gateway restart
 ```
 
-### High token usage
-
-Reduce probe frequency in `~/.openclaw/guardian.yaml`:
+**Token 消耗过高**
 ```yaml
+# 在 guardian.yaml 中降低探测频率
 watchdog:
-  day_interval_minutes: 30  # Instead of 15
+  day_interval_minutes: 30  # 改为30分钟
 ```
 
-Or increase your cron job interval for Layer 2 reports.
+### 安全策略
 
-## Architecture
+| 敏感信息类型 | 处理方式 |
+|-------------|---------|
+| API Key | 永不记录或显示 |
+| Provider 账号 | 脱敏处理（如 `moonshot:default` → `moonshot`） |
+| 文件路径 | 使用 `$HOME` 模板 |
+| Token | 所有输出中均脱敏 |
 
-### Data Flow
+### 许可证
 
-```
-Watchdog Probe (Layer 1)
-      ↓
-  Detect Failure
-      ↓
-Classify Error → Auto-Recover → Write Audit Event
-      ↓
-System Audit (Layer 2) - On your schedule
-      ↓
-Read Logs + Audit Events → Generate Report → Send Alert
-```
-
-### File Locations
-
-| Component | Path |
-|-----------|------|
-| Watchdog Script | `~/.openclaw/scripts/openclaw-guardian/watchdog.py` |
-| Health Fetcher | `~/.openclaw/scripts/openclaw-guardian/health_fetcher.py` |
-| Day Schedule | `~/Library/LaunchAgents/com.openclaw.guardian.day.plist` |
-| Night Schedule | `~/Library/LaunchAgents/com.openclaw.guardian.night.plist` |
-| Logs | `~/.openclaw/guardian/watchdog.log` |
-| Audit Events | `~/.openclaw/guardian/audit.jsonl` |
-| Config Backups | `~/.openclaw/config-backups/` |
-
-## Security
-
-**Sensitive Information Protection**:
-
-| Type | Handling |
-|------|----------|
-| API Keys | Never logged or displayed |
-| Provider accounts | Stripped (e.g., `moonshot:default` → `moonshot`) |
-| File paths | Use `$HOME` templates |
-| Tokens | Redacted in all outputs |
-
-## Requirements
-
-- macOS 12+ (for LaunchAgent scheduling)
-- OpenClaw 2026.2.2+
-- Python 3.10+
-- Tinman (optional, for Layer 3 security)
-
-## Contributing
-
-PRs welcome! Please ensure:
-1. No sensitive information in commits
-2. Use template variables for paths (`$HOME`, not `/Users/xxx`)
-3. Test on clean OpenClaw installation
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-## Acknowledgments
-
-- Built for the OpenClaw community
-- Security practices inspired by [Tinman](https://github.com/oliveskin/openclaw-skill-tinman)
-- Production monitoring patterns from real-world deployments
-
-## Support
-
-- GitHub Issues: Bug reports and feature requests
-- OpenClaw Discord: Community support
-- ClawHub: Find related skills
+Apache-2.0
 
 ---
 
-**License**: Apache-2.0
-
-**Remember**: Guardian watches over your OpenClaw so you don't have to.
+**Remember / 请记住**: Guardian watches over your OpenClaw so you don't have to. / Guardian 守护您的 OpenClaw，让您高枕无忧。
