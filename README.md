@@ -1,10 +1,10 @@
-# OpenClaw Guardian
+# OpenClaw Guardian / OpenClaw 守护者
 
-[English](#english-version) | [中文](#中文版本)
+**[English Version](#english) | [中文版本](#chinese)**
 
 ---
 
-<a name="english-version"></a>
+<a id="english"></a>
 ## 🇬🇧 English
 
 Production-ready self-healing and monitoring for OpenClaw deployments.
@@ -106,8 +106,8 @@ Apache-2.0
 
 ---
 
-<a name="中文版本"></a>
-## 🇨🇳 中文
+<a id="chinese"></a>
+## 🇨🇳 中文 / Chinese
 
 OpenClaw 生产级自愈与监控系统。
 
