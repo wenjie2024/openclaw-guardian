@@ -10,8 +10,20 @@ import subprocess
 from datetime import datetime, timedelta
 from collections import defaultdict
 
-OPENCLAW_BIN = "$HOME/.npm-global/bin/openclaw"
-LOG_DIR = os.path.expanduser("~/.openclaw/logs")
+HOME = os.path.expanduser("~")
+OPENCLAW_BIN = os.path.join(HOME, ".npm-global", "bin", "openclaw")
+# Support alternative install locations
+if not os.path.exists(OPENCLAW_BIN):
+    alternative_paths = [
+        "/usr/local/bin/openclaw",
+        "/opt/homebrew/bin/openclaw",
+    ]
+    for alt_path in alternative_paths:
+        if os.path.exists(alt_path):
+            OPENCLAW_BIN = alt_path
+            break
+
+LOG_DIR = os.path.join(HOME, ".openclaw", "logs")
 
 # LLM Error patterns for structured analysis
 LLM_PATTERNS = {
